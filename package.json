@@ -1,0 +1,14 @@
+{
+  "name": "churnguard-aws",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"cd backend && python manage.py runserver\" \"cd frontend && npm run dev\"",
+    "deploy": "cd infra && cdk deploy",
+    "test": "cd frontend && npm test && cd ../backend && pytest",
+    "build": "cd frontend && npm run build",
+    "setup": "cd backend && pip install -r requirements.txt && cd ../frontend && npm install && cd ../infra && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
