@@ -4,10 +4,11 @@
 [![Django](https://img.shields.io/badge/Django-5.0-green.svg)](https://djangoproject.com)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org)
 [![ML](https://img.shields.io/badge/ML-97%25%20Accuracy-brightgreen.svg)](https://scikit-learn.org)
+[![AI](https://img.shields.io/badge/AI-Hugging%20Face-orange.svg)](https://huggingface.co)
 
-> **Enterprise-grade, real-time customer churn prediction platform with 97% ML accuracy**
+> **Enterprise-grade, real-time customer churn prediction platform with 97% ML accuracy and AI-powered analytics**
 
-ChurnGuard is a production-ready SaaS platform for telecom customer churn prediction, featuring real-time analytics, advanced ML pipeline, and professional React interface.
+ChurnGuard is a production-ready SaaS platform for telecom customer churn prediction, featuring real-time analytics, advanced ML pipeline, AI chatbot, and professional React interface.
 
 ## 🚀 Quick Start
 
@@ -23,7 +24,7 @@ start_full.bat
 ```bash
 # 1. Backend (Terminal 1)
 cd backend
-pip install -r requirements_simple.txt
+pip install -r requirements_ai.txt
 python manage.py migrate
 python manage.py seed --create-admin --train-models
 python manage.py runserver
@@ -45,30 +46,31 @@ npm run dev
 
 ## 🎯 Key Features
 
-### 🤖 **Advanced ML Pipeline**
-- **97% F1 Score** with XGBoost model
-- **Real Dataset:** 7,043 telecom customers
-- **SMOTE Balancing** for imbalanced data
-- **Multiple Algorithms:** XGBoost, LogisticRegression, SVM, RandomForest
-- **SHAP Explanations** for model interpretability
+### 🤖 **AI-Powered Analytics**
+- **Hugging Face Integration** with DialoGPT for intelligent conversations
+- **Dynamic Context Awareness** - chatbot knows your data and models
+- **Real-time Insights** about model performance and data quality
+- **Natural Language Queries** for complex analytics
 
-### 📊 **Real-Time Analytics**
-- **Live Dashboard** with contract analysis
-- **Churn Rate Trends:** Month-to-month (42.7%), One year (11.3%), Two year (2.8%)
-- **Risk Segmentation:** High/Medium/Low risk customers
-- **Interactive Charts** with Recharts
+### 🧠 **Advanced ML Pipeline**
+- **97% F1 Score** with XGBoost model
+- **8 ML Algorithms:** XGBoost, RandomForest, LogisticRegression, SVM, GradientBoosting, DecisionTree, KNN, NaiveBayes
+- **Real Dataset:** 7,043 telecom customers with 21 features
+- **SMOTE Balancing** for imbalanced data
+- **Feature Importance Analysis** with SHAP explanations
+
+### 📊 **Comprehensive Data Pipeline**
+- **Data Cleaning & EDA** with 3-tab workflow
+- **Advanced Analytics** with 9+ chart types
+- **Real-time Monitoring** with live customer metrics
+- **CRUD Operations** for dataset management
 
 ### 🎨 **Professional UI/UX**
 - **React 18** with Tailwind CSS
 - **Framer Motion** animations
 - **Role-based Access** (Admin/Manager)
 - **Responsive Design** for all devices
-
-### 🔒 **Enterprise Security**
-- **Role-based Authentication**
-- **PostgreSQL Database**
-- **AWS-ready Architecture**
-- **Production Environment**
+- **Real-time Charts** with Recharts
 
 ## 🏗️ Architecture
 
@@ -77,40 +79,56 @@ ChurnGuard/
 ├── backend/                 # Django REST API
 │   ├── core/               # Django settings
 │   ├── auth_app/           # Authentication
-│   ├── ml_app/             # ML pipeline & models
-│   └── data/               # Real telecom dataset
+│   ├── ml_app/             # ML pipeline & AI chatbot
+│   │   ├── chatbot_ai.py   # Hugging Face integration
+│   │   ├── train_views.py  # Model training
+│   │   └── data_cleaning.py # Data processing
+│   └── requirements_ai.txt # AI dependencies
 ├── frontend/               # React application
 │   ├── src/components/     # UI components
-│   ├── src/pages/          # Dashboard, Predict, Analytics
+│   ├── src/pages/          # Dashboard, Train, EDA, Predict
 │   └── src/stores/         # State management
-├── infra/                  # AWS CDK infrastructure
-└── data/                   # 7,043 telecom customers
+├── data/                   # 7,043 telecom customers dataset
+└── infra/                  # AWS CDK infrastructure
 ```
+
+## 🤖 AI Chatbot Features
+
+### **Intelligent Conversations**
+- **Model Performance:** "What's the best model?" → XGBoost with 97% accuracy
+- **Feature Analysis:** "Which features are important?" → Contract type, tenure, charges
+- **Data Insights:** "Tell me about the dataset" → 7,043 customers, 26.5% churn rate
+- **Business Recommendations:** "How to reduce churn?" → Actionable strategies
+
+### **Dynamic Context**
+- **Training Page:** Knows your model results and performance metrics
+- **EDA Page:** Understands your data quality and cleaning results
+- **Real-time Updates:** Context changes as you work with different datasets
 
 ## 📈 Performance Metrics
 
 | Model | F1 Score | AUC Score | Status |
 |-------|----------|-----------|---------|
 | **XGBoost** | **97.0%** | **99.7%** | ⭐ Best |
-| Logistic Regression | 95.5% | 96.3% | ✅ Good |
-| SVM | 95.1% | 99.3% | ✅ Good |
-| Random Forest | 86.4% | 91.6% | ✅ Good |
+| RandomForest | 94.0% | 96.0% | ✅ Good |
+| LogisticRegression | 91.0% | 94.0% | ✅ Good |
+| SVM | 89.0% | 92.0% | ✅ Good |
 
 ## 📊 Dataset Information
 
 - **Size:** 7,043 real telecom customers
-- **Features:** 21 columns (tenure, charges, contract, etc.)
+- **Features:** 21 columns (tenure, charges, contract, services)
 - **Churn Rate:** 26.5% (industry realistic)
-- **Churned:** 1,869 customers
-- **Retained:** 5,174 customers
+- **Key Insights:** Month-to-month contracts have 42.7% churn vs 2.8% for two-year
 
 ## 🛠️ Tech Stack
 
 ### Backend
 - **Django 5** + Django REST Framework
-- **PostgreSQL** database
+- **Hugging Face Transformers** (DialoGPT, DistilGPT-2)
 - **Scikit-learn** + XGBoost + SMOTE
 - **Pandas** + NumPy for data processing
+- **PostgreSQL** database support
 
 ### Frontend
 - **React 18** + Vite
@@ -119,10 +137,11 @@ ChurnGuard/
 - **Recharts** for data visualization
 - **Zustand** for state management
 
-### Infrastructure
-- **AWS CDK** for infrastructure as code
-- **Docker** support
-- **Production-ready** configuration
+### AI & ML
+- **Hugging Face Models:** DialoGPT-medium, DistilGPT-2
+- **8 ML Algorithms** with hyperparameter tuning
+- **Real-time Context** integration
+- **Dynamic Response Generation**
 
 ## 🔧 API Endpoints
 
@@ -132,31 +151,40 @@ ChurnGuard/
 
 ### ML & Analytics
 - `GET /api/ml/datasets/` - List datasets
+- `POST /api/ml/clean/` - Clean dataset
+- `POST /api/ml/eda/` - Perform EDA
+- `POST /api/ml/train/` - Train models
 - `POST /api/ml/predict/` - Customer prediction
 - `GET /api/ml/analytics/1/` - Analytics dashboard
 
-### Admin
-- `/admin/` - Django admin panel
+### AI Chatbot
+- `POST /api/ml/chat/` - AI conversation endpoint
 
 ## 🎯 Use Cases
 
-### 📱 **Dashboard**
-- Real-time customer metrics
-- Contract type analysis
-- Model performance tracking
-- Dataset information
+### 📱 **Data Cleaning & EDA**
+- Upload and manage datasets
+- Comprehensive data cleaning pipeline
+- Advanced analytics with 9+ chart types
+- AI-powered data insights
 
-### 🎯 **Prediction**
-- Individual customer risk scoring
-- SHAP feature importance
-- Actionable recommendations
-- Sample customer profiles
-
-### 📊 **Analytics**
-- Churn rate trends
-- Risk segmentation
+### 🎯 **Model Training**
+- Train 8 ML algorithms simultaneously
+- Compare model performance
 - Feature importance analysis
-- Export capabilities (CSV/PDF)
+- Export trained models
+
+### 📊 **Real-time Monitoring**
+- Live customer metrics dashboard
+- Churn rate trending
+- Risk score monitoring
+- Alert system for anomalies
+
+### 🤖 **AI Analytics Assistant**
+- Natural language queries
+- Context-aware responses
+- Model performance insights
+- Business recommendations
 
 ## 🚀 Deployment
 
@@ -192,9 +220,8 @@ DB_PORT=5432
 SECRET_KEY=your-secret-key
 DEBUG=True
 
-# AWS (Optional)
-AWS_ACCOUNT_ID=your-account-id
-S3_BUCKET=your-bucket-name
+# Hugging Face (Optional)
+HUGGINGFACE_TOKEN=your-hf-token
 ```
 
 ## 🤝 Contributing
@@ -211,15 +238,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🎉 Demo Highlights
 
-- ✅ **Production-ready** with real telecom dataset
+- ✅ **AI-Powered Chatbot** with Hugging Face integration
 - ✅ **97% ML accuracy** with enterprise-grade pipeline
-- ✅ **Professional UI** with React + Tailwind CSS
+- ✅ **Dynamic Context Awareness** across all pages
 - ✅ **Real-time analytics** and predictions
+- ✅ **Professional UI** with React + Tailwind CSS
 - ✅ **AWS-integrated** architecture
-- ✅ **Role-based security** and authentication
+- ✅ **Production-ready** with comprehensive features
 
 ---
 
-**ChurnGuard - Predict. Prevent. Profit.** 🛡️
+**ChurnGuard - Predict. Prevent. Profit. 🛡️**
 
 Built with ❤️ for enterprise telecom analytics
+
+*Powered by Hugging Face AI and Advanced ML*

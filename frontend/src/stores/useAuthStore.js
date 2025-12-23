@@ -2,14 +2,12 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import axios from 'axios'
 import toast from 'react-hot-toast'
-import { Auth } from 'aws-amplify'
 
 const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
       token: null,
-      cognitoId: null,
       isLoading: false,
 
       login: async (credentials) => {
@@ -21,7 +19,6 @@ const useAuthStore = create(
           set({
             user,
             token: tokens.access,
-            cognitoId: user.cognito_id,
             isLoading: false
           })
           
@@ -47,7 +44,6 @@ const useAuthStore = create(
           set({
             user,
             token: tokens.access,
-            cognitoId: user.cognito_id,
             isLoading: false
           })
           
@@ -67,21 +63,14 @@ const useAuthStore = create(
         try {
           await axios.post('/api/auth/logout/')
           
-          // Cognito sign out
-          try {
-            await Auth.signOut()
-          } catch (e) {
-            console.log('Cognito signout error:', e)
-          }
-          
-          set({ user: null, token: null, cognitoId: null })
+          set({ user: null, token: null })
           delete axios.defaults.headers.common['Authorization']
           
           toast.success('Logged out successfully')
         } catch (error) {
           console.error('Logout error:', error)
           // Force logout on error
-          set({ user: null, token: null, cognitoId: null })
+          set({ user: null, token: null })
           delete axios.defaults.headers.common['Authorization']
         }
       },
@@ -99,8 +88,7 @@ const useAuthStore = create(
       name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
-        cognitoId: state.cognitoId
+        token: state.token
       })
     }
   )

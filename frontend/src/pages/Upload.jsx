@@ -1,251 +1,179 @@
-import React, { useState, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { useDropzone } from 'react-dropzone'
+import React, { useState, useEffect } from 'react'
 import { Upload as UploadIcon, FileText, CheckCircle, AlertCircle } from 'lucide-react'
-import axios from 'axios'
 import toast from 'react-hot-toast'
 
 const Upload = () => {
-  const [uploadStatus, setUploadStatus] = useState('idle') // idle, uploading, success, error
+  const [dragActive, setDragActive] = useState(false)
+  const [file, setFile] = useState(null)
+  const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState(null)
 
-  const onDrop = useCallback(async (acceptedFiles) => {
-    const file = acceptedFiles[0]
+  const handleDrag = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true)
+    } else if (e.type === 'dragleave') {
+      setDragActive(false)
+    }
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0])
+    }
+  }
+
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0])
+    }
+  }
+
+  const uploadFile = async () => {
     if (!file) return
 
-    // Validate file size (50MB max)
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error('File size must be less than 50MB')
-      return
-    }
-
-    // Validate file type
-    const validTypes = ['.csv', '.xlsx', '.xls']
-    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'))
-    if (!validTypes.includes(fileExtension)) {
-      toast.error('Please upload a CSV or Excel file')
-      return
-    }
-
-    setUploadStatus('uploading')
-    
+    setUploading(true)
     const formData = new FormData()
     formData.append('file', file)
 
     try {
-      const response = await axios.post('/api/ml/upload/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      const response = await fetch('/api/ml/upload/', {
+        method: 'POST',
+        body: formData
       })
 
-      setUploadResult(response.data)
-      setUploadStatus('success')
-      toast.success('File uploaded successfully!')
+      if (response.ok) {
+        const result = await response.json()
+        setUploadResult(result)
+        toast.success('Dataset uploaded successfully!')
+      } else {
+        toast.error('Upload failed')
+      }
     } catch (error) {
-      setUploadStatus('error')
-      const message = error.response?.data?.error || 'Upload failed'
-      toast.error(message)
+      toast.error('Upload error: ' + error.message)
+    } finally {
+      setUploading(false)
     }
-  }, [])
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'text/csv': ['.csv'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'application/vnd.ms-excel': ['.xls']
-    },
-    maxFiles: 1
-  })
-
-  const resetUpload = () => {
-    setUploadStatus('idle')
-    setUploadResult(null)
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Upload Dataset</h1>
-        <p className="text-gray-600">Upload your customer data to train churn prediction models</p>
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload Dataset</h1>
+        <p className="text-gray-600">Upload your CSV file for AI-powered analysis and model training</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Upload Area */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="card"
-        >
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Upload File</h3>
-          
-          {uploadStatus === 'idle' && (
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                isDragActive 
-                  ? 'border-primary bg-primary/5' 
-                  : 'border-gray-300 hover:border-primary hover:bg-gray-50'
-              }`}
+        <div className="space-y-6">
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              dragActive 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <UploadIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Drop your CSV file here
+            </h3>
+            <p className="text-gray-500 mb-4">or click to browse</p>
+            <input
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              onChange={handleFileSelect}
+              className="hidden"
+              id="file-upload"
+            />
+            <label
+              htmlFor="file-upload"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
             >
-              <input {...getInputProps()} />
-              <UploadIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-700 mb-2">
-                {isDragActive ? 'Drop the file here' : 'Drag & drop your file here'}
-              </p>
-              <p className="text-gray-500 mb-4">or click to browse</p>
-              <p className="text-sm text-gray-400">
-                Supports CSV, Excel files (max 50MB)
-              </p>
-            </div>
-          )}
+              Choose File
+            </label>
+          </div>
 
-          {uploadStatus === 'uploading' && (
-            <div className="text-center py-8">
-              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-700">Uploading and processing...</p>
-              <p className="text-gray-500">This may take a few minutes</p>
-            </div>
-          )}
-
-          {uploadStatus === 'success' && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-8"
-            >
-              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-700 mb-2">Upload Successful!</p>
-              <p className="text-gray-500 mb-4">Your dataset has been processed</p>
+          {file && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <div>
+                  <p className="font-medium text-gray-900">{file.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
               <button
-                onClick={resetUpload}
-                className="btn-primary"
+                onClick={uploadFile}
+                disabled={uploading}
+                className="mt-4 w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
-                Upload Another File
+                {uploading ? 'Uploading...' : 'Upload & Analyze'}
               </button>
-            </motion.div>
-          )}
-
-          {uploadStatus === 'error' && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-8"
-            >
-              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-700 mb-2">Upload Failed</p>
-              <p className="text-gray-500 mb-4">Please try again</p>
-              <button
-                onClick={resetUpload}
-                className="btn-primary"
-              >
-                Try Again
-              </button>
-            </motion.div>
-          )}
-        </motion.div>
-
-        {/* Upload Results */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="card"
-        >
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Dataset Information</h3>
-          
-          {uploadResult ? (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <FileText className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium text-gray-800">Dataset ID</p>
-                  <p className="text-gray-600">{uploadResult.dataset_id}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-800">Rows</p>
-                  <p className="text-gray-600">{uploadResult.rows.toLocaleString()}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-800">Columns</p>
-                  <p className="text-gray-600">{uploadResult.columns?.length || 0}</p>
-                </div>
-              </div>
-
-              {uploadResult.target_distribution && (
-                <div>
-                  <p className="font-medium text-gray-800 mb-2">Target Distribution</p>
-                  <div className="space-y-2">
-                    {Object.entries(uploadResult.target_distribution).map(([key, value]) => (
-                      <div key={key} className="flex justify-between items-center">
-                        <span className="text-gray-600">{key}</span>
-                        <span className="font-medium">{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-500">
-                  Job ID: {uploadResult.job_id}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Training pipeline has been automatically started
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Upload a dataset to see information here</p>
             </div>
           )}
-        </motion.div>
-      </div>
 
-      {/* Requirements */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="card"
-      >
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Dataset Requirements</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium text-gray-700 mb-2">Required Columns</h4>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• customerID (unique identifier)</li>
-              <li>• Churn (target variable: Yes/No)</li>
-              <li>• tenure (customer tenure in months)</li>
-              <li>• MonthlyCharges (monthly charges)</li>
-              <li>• TotalCharges (total charges)</li>
+          {uploadResult && (
+            <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+              <div className="flex items-center space-x-2 mb-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <h4 className="font-medium text-green-800">Upload Successful</h4>
+              </div>
+              <p className="text-green-700 text-sm">
+                Dataset ID: {uploadResult.dataset_id}
+              </p>
+              <p className="text-green-700 text-sm">
+                Rows: {uploadResult.rows} | Columns: {uploadResult.columns?.length}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Instructions */}
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold mb-4">Supported Formats</h3>
+            <ul className="space-y-2 text-gray-600">
+              <li>• CSV files (.csv)</li>
+              <li>• Excel files (.xlsx, .xls)</li>
+              <li>• Maximum file size: 100MB</li>
+              <li>• UTF-8 encoding recommended</li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-medium text-gray-700 mb-2">Optional Columns</h4>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• gender, Partner, Dependents</li>
-              <li>• PhoneService, InternetService</li>
-              <li>• Contract, PaymentMethod</li>
-              <li>• PaperlessBilling, OnlineBackup</li>
-              <li>• And other telecom features</li>
-            </ul>
+
+          <div className="bg-blue-50 p-6 rounded-lg">
+            <h3 className="text-lg font-semibold text-blue-800 mb-4">What happens next?</h3>
+            <ol className="space-y-2 text-blue-700">
+              <li>1. AI analyzes your data structure</li>
+              <li>2. Automatic data cleaning and preprocessing</li>
+              <li>3. Feature engineering and target detection</li>
+              <li>4. Ready for model training and analytics</li>
+            </ol>
+          </div>
+
+          <div className="bg-yellow-50 p-6 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-yellow-800">Data Privacy</h4>
+                <p className="text-yellow-700 text-sm mt-1">
+                  Your data is processed securely and never shared with third parties.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }

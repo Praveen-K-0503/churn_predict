@@ -1,40 +1,28 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { 
-  LayoutDashboard, 
-  Upload, 
-  Brain, 
-  BarChart3, 
-  Target,
-  ChevronLeft,
-  ChevronRight
+  Home, LayoutDashboard, Brain, BarChart3, Target,
+  FileText, Activity, ChevronLeft, ChevronRight, Database
 } from 'lucide-react'
-import useAuthStore from '../stores/useAuthStore'
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const location = useLocation()
-  const { user } = useAuthStore()
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['admin', 'manager'] },
-    { icon: Upload, label: 'Upload Data', path: '/upload', roles: ['admin'] },
-    { icon: Brain, label: 'Train Models', path: '/train', roles: ['admin'] },
-    { icon: BarChart3, label: 'Analytics', path: '/analytics/1', roles: ['admin', 'manager'] },
-    { icon: Target, label: 'Predict', path: '/predict', roles: ['admin', 'manager'] }
+    { icon: Home, label: 'Home', path: '/' },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Database, label: 'Data Cleaning & EDA', path: '/data-cleaning' },
+    { icon: Brain, label: 'Train Models', path: '/train' },
+    { icon: Activity, label: 'Real-Time Monitoring', path: '/monitoring' },
+    { icon: Target, label: 'Predict for Customers', path: '/predict' },
+    { icon: FileText, label: 'Report Generator', path: '/reports' }
   ]
 
-  const filteredItems = menuItems.filter(item => 
-    item.roles.includes(user?.role)
-  )
-
   return (
-    <motion.div
-      animate={{ width: isCollapsed ? 80 : 256 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="bg-white shadow-lg border-r border-gray-200 flex flex-col"
-    >
+    <div className={`bg-white shadow-lg border-r border-gray-200 flex flex-col transition-all duration-300 ${
+      isCollapsed ? 'w-16' : 'w-64'
+    }`}>
       <div className="p-4 border-b border-gray-200">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -50,10 +38,9 @@ const Sidebar = () => {
       
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          {filteredItems.map((item) => {
+          {menuItems.map((item) => {
             const Icon = item.icon
-            const isActive = location.pathname === item.path || 
-                           (item.path.includes('/analytics') && location.pathname.includes('/analytics'))
+            const isActive = location.pathname === item.path
             
             return (
               <li key={item.path}>
@@ -61,7 +48,7 @@ const Sidebar = () => {
                   to={item.path}
                   className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-primary text-white'
+                      ? 'bg-blue-600 text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -83,7 +70,7 @@ const Sidebar = () => {
           </div>
         </div>
       )}
-    </motion.div>
+    </div>
   )
 }
 

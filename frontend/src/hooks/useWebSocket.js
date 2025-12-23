@@ -1,35 +1,38 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
-const useWebSocket = (url, options = {}) => {
+export const useWebSocket = (url) => {
+  const [data, setData] = useState(null)
   const [isConnected, setIsConnected] = useState(false)
-  const [lastMessage, setLastMessage] = useState(null)
+  const [error, setError] = useState(null)
   const ws = useRef(null)
-  const { onOpen, onMessage, onClose, onError } = options
 
   useEffect(() => {
     if (!url) return
 
-    const wsUrl = url.startsWith('ws') ? url : `ws://localhost:8000${url}`
+    const wsUrl = `ws://localhost:8000${url}`
     ws.current = new WebSocket(wsUrl)
 
-    ws.current.onopen = (event) => {
+    ws.current.onopen = () => {
       setIsConnected(true)
-      onOpen?.(event)
+      setError(null)
     }
 
     ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-      setLastMessage(data)
-      onMessage?.(data)
+      try {
+        const message = JSON.parse(event.data)
+        setData(message)
+      } catch (err) {
+        setError('Failed to parse message')
+      }
     }
 
-    ws.current.onclose = (event) => {
+    ws.current.onerror = (err) => {
+      setError('WebSocket error')
       setIsConnected(false)
-      onClose?.(event)
     }
 
-    ws.current.onerror = (event) => {
-      onError?.(event)
+    ws.current.onclose = () => {
+      setIsConnected(false)
     }
 
     return () => {
@@ -40,16 +43,10 @@ const useWebSocket = (url, options = {}) => {
   }, [url])
 
   const sendMessage = (message) => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+    if (ws.current && isConnected) {
       ws.current.send(JSON.stringify(message))
     }
   }
 
-  return {
-    isConnected,
-    lastMessage,
-    sendMessage
-  }
+  return { data, isConnected, error, sendMessage }
 }
-
-export default useWebSocket

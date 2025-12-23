@@ -1,8 +1,8 @@
 from django.db import models
-from auth_app.models import CustomUser
+from django.contrib.auth.models import User
 
 class DatasetMeta(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     filename = models.CharField(max_length=255)
     rows = models.IntegerField()
     target_col = models.CharField(max_length=100, default='Churn')
@@ -33,7 +33,7 @@ class TrainingLog(models.Model):
         return f"{self.step} - {self.status}"
 
 class PredictionsRisk(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     dataset = models.ForeignKey(DatasetMeta, on_delete=models.CASCADE)
     risk_score = models.FloatField()
     insights = models.JSONField()

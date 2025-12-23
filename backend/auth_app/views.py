@@ -1,6 +1,3 @@
-import boto3
-import requests
-from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -31,38 +28,7 @@ def role_required(roles):
 def signup_view(request):
     serializer = SignupSerializer(data=request.data)
     if serializer.is_valid():
-        # Verify reCAPTCHA
-        recaptcha_token = request.data.get('recaptcha_token')
-        if recaptcha_token:
-            recaptcha_response = requests.post(
-                'https://www.google.com/recaptcha/api/siteverify',
-                data={
-                    'secret': settings.RECAPTCHA_SECRET_KEY,
-                    'response': recaptcha_token
-                }
-            )
-            if not recaptcha_response.json().get('success'):
-                return Response({'error': 'reCAPTCHA verification failed'}, 
-                              status=status.HTTP_400_BAD_REQUEST)
-        
         user = serializer.save()
-        
-        # Create Cognito user
-        try:
-            cognito = boto3.client('cognito-idp', region_name=settings.AWS_DEFAULT_REGION)
-            cognito_response = cognito.admin_create_user(
-                UserPoolId=settings.COGNITO_POOL_ID,
-                Username=user.username,
-                UserAttributes=[
-                    {'Name': 'email', 'Value': user.email},
-                ],
-                TemporaryPassword='TempPass123!',
-                MessageAction='SUPPRESS'
-            )
-            user.cognito_id = cognito_response['User']['Username']
-            user.save()
-        except Exception as e:
-            print(f"Cognito error: {e}")
         
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
@@ -106,17 +72,6 @@ def logout_view(request):
         if refresh_token:
             token = RefreshToken(refresh_token)
             token.blacklist()
-        
-        # Cognito global sign out
-        if request.user.cognito_id:
-            try:
-                cognito = boto3.client('cognito-idp', region_name=settings.AWS_DEFAULT_REGION)
-                cognito.admin_user_global_sign_out(
-                    UserPoolId=settings.COGNITO_POOL_ID,
-                    Username=request.user.cognito_id
-                )
-            except Exception as e:
-                print(f"Cognito logout error: {e}")
         
         return Response({'message': 'Logged out successfully'})
     except Exception as e:
