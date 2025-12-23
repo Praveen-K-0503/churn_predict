@@ -5,6 +5,52 @@ import os
 import pandas as pd
 import numpy as np
 from django.conf import settings
+from datetime import datetime
+import re
+
+# AI-powered dataset naming
+def generate_smart_dataset_name(df, original_filename):
+    """
+    Generate intelligent dataset names based on content analysis
+    """
+    try:
+        columns = df.columns.tolist()
+        column_str = ' '.join(columns).lower()
+        
+        # Dataset type detection patterns
+        if any(word in column_str for word in ['churn', 'customer', 'tenure', 'contract']):
+            dataset_type = 'Customer Churn'
+            domain = 'Telecom'
+        elif any(word in column_str for word in ['sales', 'revenue', 'price', 'product']):
+            dataset_type = 'Sales Analytics'
+            domain = 'Business'
+        elif any(word in column_str for word in ['employee', 'hr', 'salary', 'department']):
+            dataset_type = 'HR Analytics'
+            domain = 'Human Resources'
+        else:
+            dataset_type = 'General Analytics'
+            domain = 'Business Intelligence'
+        
+        rows = len(df)
+        size_desc = 'Large' if rows > 10000 else 'Medium' if rows > 1000 else 'Small'
+        
+        smart_name = f"{domain} {dataset_type} - {size_desc} Dataset ({rows:,} records)"
+        
+        return {
+            'display_name': smart_name,
+            'dataset_type': dataset_type,
+            'domain': domain,
+            'size_category': size_desc,
+            'auto_generated': True
+        }
+    except:
+        return {
+            'display_name': original_filename,
+            'dataset_type': 'Unknown',
+            'domain': 'General',
+            'size_category': 'Unknown',
+            'auto_generated': False
+        }
 
 @csrf_exempt
 def clean_dataset(request):
@@ -195,15 +241,22 @@ def get_cleaned_datasets(request):
                     file_path = os.path.join(cleaned_dir, filename)
                     try:
                         df = pd.read_csv(file_path)
+                        # Generate smart metadata
+                        smart_metadata = generate_smart_dataset_name(df, filename)
+                        
                         # Extract dataset ID from filename
                         dataset_id = filename.replace('cleaned_', '').replace('.csv', '')
                         datasets.append({
                             'id': dataset_id,
                             'name': filename,
+                            'display_name': smart_metadata['display_name'],
+                            'dataset_type': smart_metadata['dataset_type'],
+                            'domain': smart_metadata['domain'],
                             'rows': len(df),
                             'columns': len(df.columns),
                             'size': f"{os.path.getsize(file_path) / 1024 / 1024:.2f} MB",
-                            'cleaned_at': '2024-12-23'
+                            'cleaned_at': datetime.now().strftime('%Y-%m-%d'),
+                            'created_at': datetime.now().isoformat()
                         })
                     except Exception as e:
                         print(f"Error reading {filename}: {str(e)}")

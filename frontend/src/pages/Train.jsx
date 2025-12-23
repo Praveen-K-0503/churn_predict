@@ -210,7 +210,8 @@ const Train = () => {
     // Default response
     return `I can help you with:\n\n• **Model Performance**: "What\'s the best model?"\n• **Feature Analysis**: "Which features are most important?"\n• **Dataset Insights**: "Tell me about the dataset"\n• **Churn Analysis**: "What\'s the churn rate?"\n• **Recommendations**: "How can I improve predictions?"\n\nWhat specific aspect would you like to explore?`
   }
-      const mockTrainingResults = {
+
+  const mockTrainingResults = {
     success: true,
     models: [
       { name: 'XGBoost', accuracy: 0.97, f1_score: 0.95, auc_score: 0.99 },
